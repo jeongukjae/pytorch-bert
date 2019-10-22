@@ -1,0 +1,8 @@
+# linters, formatters, analyzers
+flake8
+isort
+black
+
+# testing
+pytest
+pytest-cov
