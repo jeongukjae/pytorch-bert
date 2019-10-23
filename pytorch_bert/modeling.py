@@ -63,7 +63,7 @@ class Bert(nn.Module):
         self.pooler_layer = nn.Linear(config.hidden_size, config.hidden_size)
         self.activation = nn.Tanh()
 
-    def forward(self, input_data):
+    def forward(self, input_ids, token_type_ids, position_ids):
         words_embeddings = self.token_embeddings(input_ids)
         token_type_embeddings = self.segment_embeddings(token_type_ids)
         position_embeddings = self.position_embeddings(position_ids)
