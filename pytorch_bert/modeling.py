@@ -2,7 +2,6 @@ import json
 from typing import Dict, Any
 
 
-import torch
 from torch import nn
 
 
@@ -34,7 +33,7 @@ class BertConfig:
         self.vocab_size = vocab_size
 
     @staticmethod
-    def from_json(self, path: str) -> "BertConfig":
+    def from_json(path: str) -> "BertConfig":
         with open(path, "r") as f:
             file_content = json.load(f)
 
@@ -54,15 +53,14 @@ class Bert(nn.Module):
             encoder_layer=nn.TransformerEncoderLayer(
                 d_model=config.hidden_size,
                 nhead=config.num_attention_heads,
-                dim_feedforward=config.hidden_size,
+                dim_feedforward=config.intermediate_size,
                 dropout=config.attention_probs_dropout_prob,
                 activation=config.hidden_act,
             ),
             num_layers=config.num_hidden_layers,
-            encoder_norm=nn.LayerNorm(config.hidden_size),
         )
 
-        self.dense = nn.Linear(config.hidden_size, config.hidden_size)
+        self.pooler_layer = nn.Linear(config.hidden_size, config.hidden_size)
         self.activation = nn.Tanh()
 
     def forward(self, input_data):
