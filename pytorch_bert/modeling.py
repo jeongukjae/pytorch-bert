@@ -1,6 +1,7 @@
 import json
 from typing import Any, Dict
 
+import torch
 from torch import nn
 
 
@@ -62,7 +63,10 @@ class Bert(nn.Module):
         self.pooler_layer = nn.Linear(config.hidden_size, config.hidden_size)
         self.activation = nn.Tanh()
 
-    def forward(self, input_ids, token_type_ids, position_ids):
+    def forward(self, input_ids: torch.Tensor, token_type_ids: torch.Tensor):
+        seq_length = input_ids.size(1)
+        position_ids = torch.arange(seq_length, dtype=torch.long, device=input_ids.device)
+
         words_embeddings = self.token_embeddings(input_ids)
         token_type_embeddings = self.segment_embeddings(token_type_ids)
         position_embeddings = self.position_embeddings(position_ids)
@@ -71,6 +75,8 @@ class Bert(nn.Module):
         embeddings = self.embedding_layer_norm(embeddings)
         embeddings = self.embedding_dropout(embeddings)
 
-        encoder_outputs = self.encoder(embeddings)
+        encoder_outputs = self.bert_encoder(embeddings)
 
-        return encoder_outputs
+        pooler_output = self.activation(self.pooler_layer(encoder_outputs[:, 0, :]))
+
+        return encoder_outputs, pooler_output
