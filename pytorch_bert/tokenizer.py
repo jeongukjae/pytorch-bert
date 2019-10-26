@@ -1,13 +1,13 @@
 import re
 import unicodedata
 from collections import OrderedDict
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict, Tuple
 
 
 class SpecialToken:
-    unknown = "[UNK]"
-    separator = "[SEP]"
-    classification = "[CLS]"
+    unk = "[UNK]"
+    sep = "[SEP]"
+    cls_ = "[CLS]"
 
 
 class SubWordTokenizer:
@@ -98,7 +98,7 @@ class WordpieceTokenizer(object):
 
     __PREFIX_OF_SUBWORD = "##"
 
-    def __init__(self, vocab: OrderedDict, unknown_token: str = SpecialToken.unknown, max_length_of_word: int = 200):
+    def __init__(self, vocab: OrderedDict, unknown_token: str = SpecialToken.unk, max_length_of_word: int = 200):
         self.vocab = vocab
         self.unknown_token = unknown_token
         self.max_length_of_word = max_length_of_word
@@ -126,8 +126,7 @@ class WordpieceTokenizer(object):
         subwords = []
 
         while start < len(token):
-            end = len(token)
-            subword = self._find_subword_in_token(token, start)
+            subword, end = self._find_subword_in_token(token, start)
             if subword is None:
                 return [self.unknown_token]
             subwords.append(subword)
@@ -135,7 +134,7 @@ class WordpieceTokenizer(object):
 
         return subwords
 
-    def _find_subword_in_token(self, token: str, start_position: int) -> Optional[str]:
+    def _find_subword_in_token(self, token: str, start_position: int) -> Tuple[Optional[str], int]:
         end_position = len(token)
         while end_position > start_position:
             subword = token[start_position:end_position]
@@ -143,11 +142,11 @@ class WordpieceTokenizer(object):
                 subword = self.__PREFIX_OF_SUBWORD + subword
 
             if subword in self.vocab:
-                return subword
+                return subword, end_position
 
             end_position -= 1
 
-        return None
+        return None, end_position
 
 
 def _load_vocab(vocab_path: str) -> OrderedDict:
@@ -173,6 +172,7 @@ def _convert_to_str(text: Union[str, bytes]) -> str:
 
 def _tokenize_whitespace(text: str) -> List[str]:
     """Runs basic whitespace cleaning and splitting on a piece of text."""
+    return text.strip().split()
 
 
 def _is_punctuation(char: str) -> bool:
