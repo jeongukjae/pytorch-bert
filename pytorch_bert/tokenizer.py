@@ -1,7 +1,13 @@
-import collections
 import re
 import unicodedata
+from collections import OrderedDict
 from typing import List, Optional, Union
+
+
+class SpecialToken:
+    unknown = "[UNK]"
+    separator = "[SEP]"
+    classification = "[CLS]"
 
 
 class SubWordTokenizer:
@@ -92,7 +98,7 @@ class WordpieceTokenizer(object):
 
     __PREFIX_OF_SUBWORD = "##"
 
-    def __init__(self, vocab: collections.OrderedDict, unknown_token: str = "[UNK]", max_length_of_word: int = 200):
+    def __init__(self, vocab: OrderedDict, unknown_token: str = SpecialToken.unknown, max_length_of_word: int = 200):
         self.vocab = vocab
         self.unknown_token = unknown_token
         self.max_length_of_word = max_length_of_word
@@ -144,8 +150,8 @@ class WordpieceTokenizer(object):
         return None
 
 
-def _load_vocab(vocab_path: str) -> collections.OrderedDict:
-    vocab = collections.OrderedDict()
+def _load_vocab(vocab_path: str) -> OrderedDict:
+    vocab = OrderedDict()
     index = 0
     with open(vocab_path, "r") as f:
         for line in f:
