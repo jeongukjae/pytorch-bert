@@ -3,6 +3,7 @@ from typing import Any, Dict
 
 import torch
 from torch import nn
+from torch.nn import functional as F
 
 
 class BertConfig:
@@ -43,7 +44,7 @@ class BertConfig:
 class Bert(nn.Module):
     def __init__(self, config: BertConfig):
         super(Bert, self).__init__()
-        self.token_embeddings = nn.Embedding(config.vocab_size, config.hidden_size, padding_idx=0)
+        self.token_embeddings = nn.Embedding(config.vocab_size, config.hidden_size)
         self.segment_embeddings = nn.Embedding(config.type_vocab_size, config.hidden_size)
         self.position_embeddings = nn.Embedding(config.max_position_embeddings, config.hidden_size)
         self.embedding_layer_norm = nn.LayerNorm(config.hidden_size)
@@ -63,7 +64,7 @@ class Bert(nn.Module):
         self.pooler_layer = nn.Linear(config.hidden_size, config.hidden_size)
         self.activation = nn.Tanh()
 
-    def forward(self, input_ids: torch.Tensor, token_type_ids: torch.Tensor):
+    def forward(self, input_ids: torch.Tensor, token_type_ids: torch.Tensor, attention_mask: torch.Tensor):
         seq_length = input_ids.size(1)
         position_ids = torch.arange(seq_length, dtype=torch.long, device=input_ids.device)
 
@@ -75,8 +76,40 @@ class Bert(nn.Module):
         embeddings = self.embedding_layer_norm(embeddings)
         embeddings = self.embedding_dropout(embeddings)
 
-        encoder_outputs = self.bert_encoder(embeddings)
+        encoder_outputs = self.bert_encoder(embeddings.permute(1, 0, 2), src_key_padding_mask=attention_mask)
 
-        pooler_output = self.activation(self.pooler_layer(encoder_outputs[:, 0, :]))
+        pooler_output = self.activation(self.pooler_layer(encoder_outputs[0, :, :]))
 
         return encoder_outputs, pooler_output
+
+
+class BertMLM(nn.Module):
+    def __init__(self, config: BertConfig):
+        super(BertMLM, self).__init__()
+
+        self.transform = nn.Linear(config.hidden_size, config.hidden_size)
+        self.transform_layer_norm = nn.LayerNorm(config.hidden_size)
+
+        self.output_layer = nn.Linear(config.hidden_size, config.vocab_size, bias=False)
+        self.output_bias = nn.Parameter(torch.zeros(config.vocab_size))
+        self.output_logit = nn.Softmax(dim=2)
+
+    def forward(self, encoder_outputs: torch.Tensor) -> torch.Tensor:
+        transformed = F.gelu(self.transform(encoder_outputs))
+        transformed = self.transform_layer_norm(transformed)
+
+        # print(transformed.size())
+
+        logits = self.output_layer(transformed)
+        return self.output_logit(logits + self.output_bias)
+
+
+class BertNSP(nn.Module):
+    def __init__(self, config: BertConfig):
+        super(BertNSP, self).__init__()
+
+        self.nsp_layer = nn.Linear(config.hidden_size, 2)
+        self.nsp_softmax = nn.Softmax(dim=-1)
+
+    def forward(self, pooled_output: torch.Tensor) -> torch.Tensor:
+        return self.nsp_softmax(self.nsp_layer(pooled_output))
