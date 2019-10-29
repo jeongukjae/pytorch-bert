@@ -8,16 +8,15 @@ from .tokenizer import SpecialToken, SubWordTokenizer
 
 SequencePair = Tuple[str, str]
 Sequences = Union[Tuple[str], SequencePair]
-Feature = namedtuple('Feature', ('tokens', 'input_type_ids', 'input_ids', 'input_mask'))
-Masked = namedtuple('Masked', ('positions', 'answers'))
+Feature = namedtuple("Feature", ("tokens", "input_type_ids", "input_ids", "input_mask"))
+Masked = namedtuple("Masked", ("positions", "answers"))
+
 
 class FeatureExtractor:
     def __init__(self, tokenizer: SubWordTokenizer):
         self.tokenizer = tokenizer
 
-    def convert_sequences_to_feature(
-        self, sequences: Sequences, max_sequence_length: int
-    ) -> Feature:
+    def convert_sequences_to_feature(self, sequences: Sequences, max_sequence_length: int) -> Feature:
         tokenized_sequences = tuple(self.tokenizer.tokenize(sequence) for sequence in sequences)
         is_sequence_pair = _is_sequence_pair(tokenized_sequences)
 
@@ -52,11 +51,12 @@ class FeatureExtractor:
         return Feature(tokens, input_type_ids, input_ids, input_mask)
 
     def create_input_mask(self, input_mask: List[int], max_sequence_length: int):
-        return torch.ones((1, max_sequence_length), dtype=torch.bool) ^ torch.tensor(input_mask, dtype=torch.bool).unsqueeze(0)
+        return torch.ones((1, max_sequence_length), dtype=torch.bool) ^ torch.tensor(
+            input_mask, dtype=torch.bool
+        ).unsqueeze(0)
 
     def mask(self, feature: Feature, mask_token_id: int):
         tokens, input_type_ids, input_ids, input_mask = feature
-        seq_length = sum(input_mask)
         masked_positions = []
         answers = []
 
@@ -72,6 +72,7 @@ class FeatureExtractor:
                 input_ids[index] = mask_token_id
 
         return Feature(tokens, input_type_ids, input_ids, input_mask), Masked(masked_positions, answers)
+
 
 def _is_sequence_pair(sequences: Tuple) -> bool:
     return len(sequences) == 2

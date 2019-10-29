@@ -107,10 +107,10 @@ class BasicTokenizer(object):
         start_new_word = True
         output = []
 
-        for index, char in enumerate(text):
+        for char in text:
             if _is_punctuation(char):
                 output.append([char])
-                start_new_wrod = True
+                start_new_word = True
             else:
                 if start_new_word:
                     output.append([])

@@ -80,7 +80,7 @@ class WeightConverter:
 
         _load_torch_weight(param.weight, embedding_weight)
 
-    def _load_linear(self, param: torch.nn.Linear, linear_base: str, load_bias: bool= True):
+    def _load_linear(self, param: torch.nn.Linear, linear_base: str, load_bias: bool = True):
         linear_weight = _load_tf_variable(self.bert_model_path, f"{linear_base}/kernel")
         linear_weight = np.transpose(linear_weight)
         _load_torch_weight(param.weight, linear_weight)
@@ -114,6 +114,7 @@ class WeightConverter:
 
         _load_torch_weight(param.in_proj_weight, in_proj_weight)
         _load_torch_weight(param.in_proj_bias, in_proj_bias)
+
 
 def _get_number_of_transformer_block(tf_variable_names: Iterable[str]) -> int:
     layer_num_pattern = re.compile(r"bert/encoder/layer_([0-9]+)/")
