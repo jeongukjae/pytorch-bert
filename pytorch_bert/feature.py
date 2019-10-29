@@ -1,7 +1,7 @@
 import itertools
-from typing import cast, Union, Tuple, List
+from typing import List, Tuple, Union, cast
 
-from .tokenizer import SubWordTokenizer, SpecialToken
+from .tokenizer import SpecialToken, SubWordTokenizer
 
 SequencePair = Tuple[str, str]
 Sequences = Union[Tuple[str], SequencePair]

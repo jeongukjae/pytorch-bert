@@ -1,8 +1,10 @@
-import re
 import os
-import torch
+import re
+from typing import Iterable, Optional
+
 import numpy as np
-from typing import Optional, Iterable
+import torch
+
 from .modeling import Bert, BertMLM, BertNSP
 
 try:

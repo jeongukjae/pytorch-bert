@@ -1,6 +1,6 @@
 import unicodedata
 from collections import OrderedDict
-from typing import List, Optional, Union, Dict, Tuple, cast
+from typing import Dict, List, Optional, Tuple, Union, cast
 
 
 class SpecialToken:
