@@ -23,6 +23,12 @@ class SubWordTokenizer:
             for sub_token in self.wordpiece_tokenizer.tokenize(token)
         ]
 
+    def convert_tokens_to_ids(self, tokens: List[str]) -> List[int]:
+        return self.vocab.convert_tokens_to_ids(tokens)
+
+    def convert_ids_to_tokens(self, ids: List[int]) -> List[str]:
+        return self.vocab.convert_ids_to_tokens(ids)
+
 
 class Vocab:
     def __init__(self, vocab_path: str):
