@@ -1,11 +1,15 @@
-from typing import List, Tuple, Union, cast
+import random
 from collections import namedtuple
+from typing import List, Tuple, Union, cast
+
+import torch
 
 from .tokenizer import SpecialToken, SubWordTokenizer
 
 SequencePair = Tuple[str, str]
 Sequences = Union[Tuple[str], SequencePair]
 Feature = namedtuple('Feature', ('tokens', 'input_type_ids', 'input_ids', 'input_mask'))
+Masked = namedtuple('Masked', ('positions', 'answers'))
 
 class FeatureExtractor:
     def __init__(self, tokenizer: SubWordTokenizer):
@@ -47,6 +51,27 @@ class FeatureExtractor:
 
         return Feature(tokens, input_type_ids, input_ids, input_mask)
 
+    def create_input_mask(self, input_mask: List[int], max_sequence_length: int):
+        return torch.ones((1, max_sequence_length), dtype=torch.bool) ^ torch.tensor(input_mask, dtype=torch.bool).unsqueeze(0)
+
+    def mask(self, feature: Feature, mask_token_id: int):
+        tokens, input_type_ids, input_ids, input_mask = feature
+        seq_length = sum(input_mask)
+        masked_positions = []
+        answers = []
+
+        for index, token in enumerate(tokens):
+            if token == SpecialToken.cls_ or token == SpecialToken.sep:
+                continue
+
+            if random.random() < 0.15:
+                masked_positions.append(index)
+                answers.append(input_ids[index])
+
+                tokens[index] = SpecialToken.mask
+                input_ids[index] = mask_token_id
+
+        return Feature(tokens, input_type_ids, input_ids, input_mask), Masked(masked_positions, answers)
 
 def _is_sequence_pair(sequences: Tuple) -> bool:
     return len(sequences) == 2
