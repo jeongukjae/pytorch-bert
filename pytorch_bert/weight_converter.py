@@ -36,7 +36,6 @@ class WeightConverter:
         self.load_pooler_layer(bert)
 
     def load_embedding_layer(self, bert: Bert):
-        print('load embedding layer')
         base = "bert/embeddings"
 
         self._load_embedding(bert.token_embeddings, f"{base}/word_embeddings")
@@ -45,7 +44,6 @@ class WeightConverter:
         self._load_layer_norm(bert.embedding_layer_norm, f"{base}/LayerNorm")
 
     def load_transformer_block(self, encoder: torch.nn.TransformerEncoder, layer_num: int):
-        print(f'load transformer block {layer_num}')
         base = f"bert/encoder/layer_{layer_num}"
 
         self._load_self_attention(encoder.self_attn, f"{base}/attention")
