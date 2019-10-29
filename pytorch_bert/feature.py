@@ -1,11 +1,11 @@
-import itertools
 from typing import List, Tuple, Union, cast
+from collections import namedtuple
 
 from .tokenizer import SpecialToken, SubWordTokenizer
 
 SequencePair = Tuple[str, str]
 Sequences = Union[Tuple[str], SequencePair]
-
+Feature = namedtuple('Feature', ('tokens', 'input_type_ids', 'input_ids', 'input_mask'))
 
 class FeatureExtractor:
     def __init__(self, tokenizer: SubWordTokenizer):
@@ -13,7 +13,7 @@ class FeatureExtractor:
 
     def convert_sequences_to_feature(
         self, sequences: Sequences, max_sequence_length: int
-    ) -> Tuple[List[str], List[int], List[int], List[int]]:
+    ) -> Feature:
         tokenized_sequences = tuple(self.tokenizer.tokenize(sequence) for sequence in sequences)
         is_sequence_pair = _is_sequence_pair(tokenized_sequences)
 
@@ -45,7 +45,7 @@ class FeatureExtractor:
             input_ids.extend(list_for_padding)
             input_mask.extend(list_for_padding)
 
-        return (tokens, input_type_ids, input_ids, input_mask)
+        return Feature(tokens, input_type_ids, input_ids, input_mask)
 
 
 def _is_sequence_pair(sequences: Tuple) -> bool:
