@@ -7,6 +7,7 @@ class SpecialToken:
     unk = "[UNK]"
     sep = "[SEP]"
     cls_ = "[CLS]"
+    mask = "[MASK]"
 
 
 class SubWordTokenizer:
