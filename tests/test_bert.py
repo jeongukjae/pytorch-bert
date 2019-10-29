@@ -1,6 +1,6 @@
 import pytest
 
-from pytorch_bert.bert import _truncate_sequence_pair
+from pytorch_bert.feature import _truncate_sequence_pair
 
 
 @pytest.mark.parametrize(
