@@ -19,6 +19,7 @@ class FeatureExtractor:
 
         if is_sequence_pair:
             # [CLS], sequence1, [SEP], sequence2, [SEP]
+            tokenized_sequences = cast(Tuple[List[str], List[str]], tokenized_sequences)
             tokenized_sequences = _truncate_sequence_pair(tokenized_sequences, max_sequence_length - 3)
         else:
             # [CLS], sequence1, [SEP]
@@ -47,7 +48,7 @@ class FeatureExtractor:
         return (tokens, input_type_ids, input_ids, input_mask)
 
 
-def _is_sequence_pair(sequences: Sequences) -> bool:
+def _is_sequence_pair(sequences: Tuple) -> bool:
     return len(sequences) == 2
 
 
