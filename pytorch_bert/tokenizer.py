@@ -1,7 +1,6 @@
-import re
 import unicodedata
 from collections import OrderedDict
-from typing import List, Optional, Union, Dict, Tuple
+from typing import List, Optional, Union, Dict, Tuple, cast
 
 
 class SpecialToken:
@@ -11,9 +10,8 @@ class SpecialToken:
 
 
 class SubWordTokenizer:
-    def __init__(self, vocab_path: str, do_lower_case: bool = True):
-        self.vocab = _load_vocab(vocab_path)
-        self.inv_vocab = {v: k for k, v in self.vocab.items()}
+    def __init__(self, vocab: "Vocab", do_lower_case: bool = True):
+        self.vocab = vocab
 
         self.basic_tokenizer = BasicTokenizer(do_lower_case=do_lower_case)
         self.wordpiece_tokenizer = WordpieceTokenizer(vocab=self.vocab)
@@ -25,13 +23,35 @@ class SubWordTokenizer:
             for sub_token in self.wordpiece_tokenizer.tokenize(token)
         ]
 
+
+class Vocab:
+    def __init__(self, vocab_path: str):
+        self.vocab = self._load_vocab(vocab_path)
+        self.inv_vocab = {v: k for k, v in self.vocab.items()}
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.vocab
+
     def convert_tokens_to_ids(self, tokens: List[str]) -> List[int]:
-        return self._convert_by_vocab(self.vocab, tokens)
+        return cast(List[int], self._convert_by_vocab(self.vocab, tokens))
 
     def convert_ids_to_tokens(self, ids: List[int]) -> List[str]:
-        return self._convert_by_vocab(self.inv_vocab, ids)
+        return cast(List[str], self._convert_by_vocab(self.inv_vocab, ids))
 
-    def _convert_by_vocab(self, vocab: Dict, items: List[Union[int, str]]) -> List[Union[int, str]]:
+    @staticmethod
+    def _load_vocab(vocab_path: str) -> OrderedDict:
+        vocab = OrderedDict()
+        index = 0
+        with open(vocab_path, "r") as f:
+            for line in f:
+                token = _convert_to_str(line).strip()
+                vocab[token] = index
+                index += 1
+
+        return vocab
+
+    @staticmethod
+    def _convert_by_vocab(vocab: Dict, items: List[Union[int, str]]) -> List[Union[int, str]]:
         return [vocab[item] for item in items]
 
 
@@ -93,12 +113,12 @@ class BasicTokenizer(object):
         return ["".join(x) for x in output]
 
 
-class WordpieceTokenizer(object):
+class WordpieceTokenizer:
     """Runs WordPiece tokenziation."""
 
     __PREFIX_OF_SUBWORD = "##"
 
-    def __init__(self, vocab: OrderedDict, unknown_token: str = SpecialToken.unk, max_length_of_word: int = 200):
+    def __init__(self, vocab: Vocab, unknown_token: str = SpecialToken.unk, max_length_of_word: int = 200):
         self.vocab = vocab
         self.unknown_token = unknown_token
         self.max_length_of_word = max_length_of_word
@@ -147,18 +167,6 @@ class WordpieceTokenizer(object):
             end_position -= 1
 
         return None, end_position
-
-
-def _load_vocab(vocab_path: str) -> OrderedDict:
-    vocab = OrderedDict()
-    index = 0
-    with open(vocab_path, "r") as f:
-        for line in f:
-            token = _convert_to_str(line).strip()
-            vocab[token] = index
-            index += 1
-
-    return vocab
 
 
 def _convert_to_str(text: Union[str, bytes]) -> str:
