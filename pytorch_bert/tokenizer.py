@@ -1,3 +1,7 @@
+"""Tokenizer & Vocab
+
+Check general category value of unicode in https://www.unicode.org/reports/tr44/#General_Category_Values
+"""
 import unicodedata
 from collections import OrderedDict
 from typing import Dict, List, Optional, Tuple, Union, cast
@@ -101,14 +105,16 @@ class BasicTokenizer(object):
         output_tokens = _tokenize_whitespace(" ".join(splitted_tokens))
         return output_tokens
 
-    def _strip_accents(self, text: str) -> str:
+    @staticmethod
+    def _strip_accents(text: str) -> str:
         """Strips accents from a piece of text."""
         text = unicodedata.normalize("NFD", text)
         output = [char for char in text if unicodedata.category(char) != "Mn"]
 
         return "".join(output)
 
-    def _split_on_punc(self, text: str) -> List[str]:
+    @staticmethod
+    def _split_on_punc(text: str) -> List[str]:
         """Splits punctuation on a piece of text."""
         start_new_word = True
         output = []
@@ -218,13 +224,14 @@ def _clean_text(text: str) -> str:
 
 
 def _is_whitespace(char: str) -> bool:
-    """Checks whether `chars` is a whitespace character."""
-    # \t, \n, and \r are technically contorl characters but we treat them
-    # as whitespace since they are generally considered as such.
-    if char == " " or char == "\t" or char == "\n" or char == "\r":
+    """Returns True if a character is a space character
+
+    .. note:: ``\t``, ``\n``, and ``\r`` are technically contorl characters but we treat them
+              as whitespace since they are generally considered as such.
+    """
+    if char in (" ", "\t", "\n", "\r"):
         return True
-    category_of_char = unicodedata.category(char)
-    if category_of_char == "Zs":
+    if unicodedata.category(char) == "Zs":
         return True
     return False
 
