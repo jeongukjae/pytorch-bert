@@ -87,7 +87,7 @@ def _test_masked_lm(args):
         sequence_pair += (args.second,)
 
     feature = feature_extractor.convert_sequences_to_feature(sequence_pair, config.max_position_embeddings)
-    feature, masked_labels = feature_extractor.mask(feature, vocab.vocab[SpecialToken.mask])
+    feature, masked_labels = feature_extractor.mask(feature, vocab.convert_token_to_id(SpecialToken.mask))
 
     input_ids = torch.tensor([feature.input_ids])
     input_type_ids = torch.tensor([feature.input_type_ids])
@@ -102,9 +102,9 @@ def _test_masked_lm(args):
     mlm_output = mlm_head(encoder_outputs)
 
     for index, pos in enumerate(masked_labels.positions):
-        predicted = torch.argmax(mlm_output[pos, :, :], -1).item()
-        predicted = vocab.inv_vocab[predicted]
-        answer = vocab.inv_vocab[masked_labels.answers[index]]
+        predicted = int(torch.argmax(mlm_output[pos, :, :], -1).item())
+        predicted = vocab.convert_id_to_token(predicted)
+        answer = vocab.convert_id_to_token(masked_labels.answers[index])
         print(f"masked pos {pos}. answer: {answer}, predicted: {predicted}")
 
 

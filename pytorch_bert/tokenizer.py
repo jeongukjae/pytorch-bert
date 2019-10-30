@@ -33,17 +33,23 @@ class SubWordTokenizer:
 
 class Vocab:
     def __init__(self, vocab_path: str):
-        self.vocab = self._load_vocab(vocab_path)
-        self.inv_vocab = {v: k for k, v in self.vocab.items()}
+        self.__vocab = self._load_vocab(vocab_path)
+        self.__inv_vocab = {v: k for k, v in self.__vocab.items()}
 
     def __contains__(self, key: str) -> bool:
-        return key in self.vocab
+        return key in self.__vocab
+
+    def convert_token_to_id(self, token: str) -> int:
+        return self.__vocab[token]
+
+    def convert_id_to_token(self, id: int) -> str:
+        return self.__inv_vocab[id]
 
     def convert_tokens_to_ids(self, tokens: List[str]) -> List[int]:
-        return cast(List[int], self._convert_by_vocab(self.vocab, tokens))
+        return cast(List[int], self._convert_by_vocab(self.__vocab, tokens))
 
     def convert_ids_to_tokens(self, ids: List[int]) -> List[str]:
-        return cast(List[str], self._convert_by_vocab(self.inv_vocab, ids))
+        return cast(List[str], self._convert_by_vocab(self.__inv_vocab, ids))
 
     @staticmethod
     def _load_vocab(vocab_path: str) -> OrderedDict:
