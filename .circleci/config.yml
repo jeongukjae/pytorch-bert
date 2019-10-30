@@ -1,0 +1,55 @@
+version: 2.1
+
+executors:
+  pytorch-bert-executor:
+    working_directory: ~/pytorch-bert
+    docker:
+      - image: circleci/python:3.7
+
+commands:
+  install-requirements:
+    steps:
+      - checkout
+
+      - restore_cache:
+          key: deps-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
+
+      - run:
+          name: create virtualenv and install requirements
+          command: |
+            virtualenv env
+            . env/bin/activate
+            pip install -r requirements.txt -r requirements-dev.txt
+
+      - save_cache:
+          key: deps-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
+          paths:
+            - "env"
+
+jobs:
+  run-test:
+    executor: pytorch-bert-executor
+    steps:
+      - install-requirements
+      - run:
+          name: run tests
+          command: . env/bin/activate && pytest
+
+  run-linter:
+    executor: pytorch-bert-executor
+    steps:
+      - install-requirements
+      - run:
+          name: run linter
+          command: |
+            . env/bin/activate
+            flake8 pytorch_bert tests
+            isort -rc pytorch_bert tests
+            black pytorch_bert tests
+
+workflows:
+  version: 2
+  pytorch-bert-workflow:
+    jobs:
+      - run-test
+      - run-linter
