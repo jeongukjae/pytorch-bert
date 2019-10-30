@@ -50,12 +50,14 @@ class FeatureExtractor:
 
         return Feature(tokens, input_type_ids, input_ids, input_mask)
 
-    def create_input_mask(self, input_mask: List[int], max_sequence_length: int):
+    @staticmethod
+    def create_input_mask(input_mask: List[int], max_sequence_length: int):
         return torch.ones((1, max_sequence_length), dtype=torch.bool) ^ torch.tensor(
             input_mask, dtype=torch.bool
         ).unsqueeze(0)
 
-    def mask(self, feature: Feature, mask_token_id: int):
+    @staticmethod
+    def mask(feature: Feature, mask_token_id: int):
         tokens, input_type_ids, input_ids, input_mask = feature
         masked_positions = []
         answers = []
