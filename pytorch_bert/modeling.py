@@ -77,9 +77,25 @@ class Bert(nn.Module):
 
         encoder_outputs = self.bert_encoder(embeddings.permute(1, 0, 2), src_key_padding_mask=attention_mask)
 
-        pooler_output = self.activation(self.pooler_layer(encoder_outputs[0, :, :]))
+        pooled_output = self.activation(self.pooler_layer(encoder_outputs[0, :, :]))
 
-        return encoder_outputs, pooler_output
+        return encoder_outputs, pooled_output
+
+
+class PretrainingBert(nn.Module):
+    def __init__(self, config: BertConfig):
+        super(PretrainingBert, self).__init__()
+
+        self.bert = Bert(config)
+        self.mlm = BertMLM(config)
+        self.nsp = BertNSP(config)
+
+    def forward(self, input_ids: torch.Tensor, token_type_ids: torch.Tensor, attention_mask: torch.Tensor):
+        encoder_outputs, pooled_output = self.bert(input_ids, token_type_ids, attention_mask)
+        mlm_output = self.mlm(encoder_outputs)
+        nsp_output = self.nsp(pooled_output)
+
+        return encoder_outputs, pooled_output, mlm_output, nsp_output
 
 
 class BertMLM(nn.Module):
@@ -96,8 +112,6 @@ class BertMLM(nn.Module):
     def forward(self, encoder_outputs: torch.Tensor) -> torch.Tensor:
         transformed = F.gelu(self.transform(encoder_outputs))
         transformed = self.transform_layer_norm(transformed)
-
-        # print(transformed.size())
 
         logits = self.output_layer(transformed)
         return self.output_logit(logits + self.output_bias)
