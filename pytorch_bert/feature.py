@@ -12,68 +12,66 @@ Feature = namedtuple("Feature", ("tokens", "input_type_ids", "input_ids", "input
 Masked = namedtuple("Masked", ("positions", "answers"))
 
 
-class FeatureExtractor:
-    def __init__(self, tokenizer: SubWordTokenizer):
-        self.tokenizer = tokenizer
+def convert_sequences_to_feature(
+    tokenizer: SubWordTokenizer, sequences: Sequences, max_sequence_length: int
+) -> Feature:
+    tokenized_sequences = tuple(tokenizer.tokenize(sequence) for sequence in sequences)
+    is_sequence_pair = _is_sequence_pair(tokenized_sequences)
 
-    def convert_sequences_to_feature(self, sequences: Sequences, max_sequence_length: int) -> Feature:
-        tokenized_sequences = tuple(self.tokenizer.tokenize(sequence) for sequence in sequences)
-        is_sequence_pair = _is_sequence_pair(tokenized_sequences)
+    if is_sequence_pair:
+        # [CLS], sequence1, [SEP], sequence2, [SEP]
+        tokenized_sequences = cast(Tuple[List[str], List[str]], tokenized_sequences)
+        tokenized_sequences = _truncate_sequence_pair(tokenized_sequences, max_sequence_length - 3)
+    else:
+        # [CLS], sequence1, [SEP]
+        if len(tokenized_sequences[0]) > max_sequence_length - 2:
+            tokenized_sequences = tuple(tokenized_sequences[0][0 : max_sequence_length - 2])
 
-        if is_sequence_pair:
-            # [CLS], sequence1, [SEP], sequence2, [SEP]
-            tokenized_sequences = cast(Tuple[List[str], List[str]], tokenized_sequences)
-            tokenized_sequences = _truncate_sequence_pair(tokenized_sequences, max_sequence_length - 3)
-        else:
-            # [CLS], sequence1, [SEP]
-            if len(tokenized_sequences[0]) > max_sequence_length - 2:
-                tokenized_sequences = tuple(tokenized_sequences[0][0 : max_sequence_length - 2])
+    tokens = [SpecialToken.cls_] + tokenized_sequences[0] + [SpecialToken.sep]
+    input_type_ids = [0] * (len(tokenized_sequences[0]) + 2)
 
-        tokens = [SpecialToken.cls_] + tokenized_sequences[0] + [SpecialToken.sep]
-        input_type_ids = [0] * (len(tokenized_sequences[0]) + 2)
+    if is_sequence_pair:
+        tokens.extend(tokenized_sequences[1])
+        tokens.append(SpecialToken.sep)
 
-        if is_sequence_pair:
-            tokens.extend(tokenized_sequences[1])
-            tokens.append(SpecialToken.sep)
+        input_type_ids.extend([1] * (len(tokenized_sequences[1]) + 1))
 
-            input_type_ids.extend([1] * (len(tokenized_sequences[1]) + 1))
+    input_ids = tokenizer.convert_tokens_to_ids(tokens)
+    input_mask = [1] * len(input_ids)
 
-        input_ids = self.tokenizer.convert_tokens_to_ids(tokens)
-        input_mask = [1] * len(input_ids)
+    if len(input_ids) < max_sequence_length:
+        list_for_padding = [0] * (max_sequence_length - len(input_ids))
 
-        if len(input_ids) < max_sequence_length:
-            list_for_padding = [0] * (max_sequence_length - len(input_ids))
+        input_type_ids.extend(list_for_padding)
+        input_ids.extend(list_for_padding)
+        input_mask.extend(list_for_padding)
 
-            input_type_ids.extend(list_for_padding)
-            input_ids.extend(list_for_padding)
-            input_mask.extend(list_for_padding)
+    return Feature(tokens, input_type_ids, input_ids, input_mask)
 
-        return Feature(tokens, input_type_ids, input_ids, input_mask)
 
-    @staticmethod
-    def create_input_mask(input_mask: List[int], max_sequence_length: int):
-        return torch.ones((1, max_sequence_length), dtype=torch.bool) ^ torch.tensor(
-            input_mask, dtype=torch.bool
-        ).unsqueeze(0)
+def create_input_mask(input_mask: List[int], max_sequence_length: int):
+    return torch.ones((1, max_sequence_length), dtype=torch.bool) ^ torch.tensor(
+        input_mask, dtype=torch.bool
+    ).unsqueeze(0)
 
-    @staticmethod
-    def mask(feature: Feature, mask_token_id: int):
-        tokens, input_type_ids, input_ids, input_mask = feature
-        masked_positions = []
-        answers = []
 
-        for index, token in enumerate(tokens):
-            if token == SpecialToken.cls_ or token == SpecialToken.sep:
-                continue
+def mask(feature: Feature, mask_token_id: int):
+    tokens, input_type_ids, input_ids, input_mask = feature
+    masked_positions = []
+    answers = []
 
-            if random.random() < 0.15:
-                masked_positions.append(index)
-                answers.append(input_ids[index])
+    for index, token in enumerate(tokens):
+        if token == SpecialToken.cls_ or token == SpecialToken.sep:
+            continue
 
-                tokens[index] = SpecialToken.mask
-                input_ids[index] = mask_token_id
+        if random.random() < 0.15:
+            masked_positions.append(index)
+            answers.append(input_ids[index])
 
-        return Feature(tokens, input_type_ids, input_ids, input_mask), Masked(masked_positions, answers)
+            tokens[index] = SpecialToken.mask
+            input_ids[index] = mask_token_id
+
+    return Feature(tokens, input_type_ids, input_ids, input_mask), Masked(masked_positions, answers)
 
 
 def _is_sequence_pair(sequences: Tuple) -> bool:
