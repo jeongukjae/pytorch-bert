@@ -126,4 +126,3 @@ def _load_tf_variable(model_path: str, key: str):
 def _load_torch_weight(param: torch.Tensor, data):
     assert param.shape == data.shape
     param.data = torch.from_numpy(data)
-
