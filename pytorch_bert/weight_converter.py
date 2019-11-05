@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from torch import nn
 
-from .modeling import Bert, BertConfig, BertMLM, BertNSP, PretrainingBert
+from .modeling import Bert, BertConfig, PretrainingBert
 
 try:
     import tensorflow as tf
@@ -56,19 +56,6 @@ def load_tf_weight_to_pytorch_pretraining_bert(
     # load nsp
     _load_raw(bert.nsp.nsp_layer.weight, tf_model_path, f"cls/seq_relationship/output_weights")
     _load_raw(bert.nsp.nsp_layer.bias, tf_model_path, f"cls/seq_relationship/output_bias")
-
-
-def load_mlm_head(self, bert_mlm: BertMLM):
-    self._load_linear(bert_mlm.transform, "cls/predictions/transform/dense", load_bias=False)
-    self._load_layer_norm(bert_mlm.transform_layer_norm, "cls/predictions/transform/LayerNorm")
-    self._load_raw(bert_mlm.output_layer.weight, "bert/embeddings/word_embeddings")
-    self._load_raw(bert_mlm.output_bias, "cls/predictions/output_bias")
-
-
-def load_nsp_head(self, bert_nsp: BertNSP):
-    base = "cls/seq_relationship"
-    self._load_raw(bert_nsp.nsp_layer.weight, f"{base}/output_weights")
-    self._load_raw(bert_nsp.nsp_layer.bias, f"{base}/output_bias")
 
 
 def _load_embedding(embedding: nn.Embedding, tf_model_path: str, embedding_path: str):
