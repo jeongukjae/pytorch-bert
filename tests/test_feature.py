@@ -1,6 +1,6 @@
 import pytest
 
-from pytorch_bert.feature import _truncate_sequence_pair
+import pytorch_bert.feature as F
 
 
 @pytest.mark.parametrize(
@@ -22,4 +22,4 @@ from pytorch_bert.feature import _truncate_sequence_pair
     ],
 )
 def test_truncate_sequence_pair(tokenized_sequences, max_length, expected_output):
-    assert _truncate_sequence_pair(tokenized_sequences, max_length) == expected_output
+    assert F._truncate_sequence_pair(tokenized_sequences, max_length) == expected_output
