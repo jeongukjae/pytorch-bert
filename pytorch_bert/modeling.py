@@ -40,6 +40,20 @@ class BertConfig:
         return BertConfig(**file_content)
 
 
+def init_bert_weight(init_range: float):
+    def fn_to_apply(module: nn.Module):
+        if isinstance(module, (nn.Linear, nn.Embedding)):
+            module.weight.data.normal_(mean=0.0, std=init_range)
+
+            if isinstance(module, nn.Linear) and module.bias is not None:
+                module.bias.data.zero_()
+        elif isinstance(module, nn.LayerNorm):
+            module.bias.data.zero_()
+            module.weight.data.fill_(1.0)
+
+    return fn_to_apply
+
+
 class Bert(nn.Module):
     def __init__(self, config: BertConfig):
         super(Bert, self).__init__()
