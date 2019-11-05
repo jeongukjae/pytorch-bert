@@ -72,7 +72,7 @@ class Vocab:
         return [vocab[item] for item in items]
 
 
-class BasicTokenizer(object):
+class BasicTokenizer:
     """Runs basic tokenization (punctuation splitting, lower casing, etc.)."""
 
     def __init__(self, do_lower_case=True):
@@ -267,25 +267,18 @@ def _tokenize_chinese_chars(text):
 
 
 def _is_chinese_char(char_code: int):
-    """Checks whether CP is the codepoint of a CJK character."""
-    # This defines a "chinese character" as anything in the CJK Unicode block:
-    #   https://en.wikipedia.org/wiki/CJK_Unified_Ideographs_(Unicode_block)
-    #
-    # Note that the CJK Unicode block is NOT all Japanese and Korean characters,
-    # despite its name. The modern Korean Hangul alphabet is a different block,
-    # as is Japanese Hiragana and Katakana. Those alphabets are used to write
-    # space-separated words, so they are not treated specially and handled
-    # like the all of the other languages.
+    """Checks whether char_code is the code of a Chinese character."""
+    # https://en.wikipedia.org/wiki/List_of_CJK_Unified_Ideographs,_part_1_of_4
     if (
-        (char_code >= 0x4E00 and char_code <= 0x9FFF)
-        or (char_code >= 0x3400 and char_code <= 0x4DBF)  #
-        or (char_code >= 0x20000 and char_code <= 0x2A6DF)  #
-        or (char_code >= 0x2A700 and char_code <= 0x2B73F)  #
-        or (char_code >= 0x2B740 and char_code <= 0x2B81F)  #
-        or (char_code >= 0x2B820 and char_code <= 0x2CEAF)  #
-        or (char_code >= 0xF900 and char_code <= 0xFAFF)
-        or (char_code >= 0x2F800 and char_code <= 0x2FA1F)  #
-    ):  #
+        (char_code >= 0x4E00 and char_code <= 0x9FFF)  # CJK Unified Ideographs
+        or (char_code >= 0x3400 and char_code <= 0x4DBF)  # CJK Unified Ideographs Extension A
+        or (char_code >= 0x20000 and char_code <= 0x2A6DF)  # CJK Unified Ideographs Extension B
+        or (char_code >= 0x2A700 and char_code <= 0x2B73F)  # CJK Unified Ideographs Extension C
+        or (char_code >= 0x2B740 and char_code <= 0x2B81F)  # CJK Unified Ideographs Extension D
+        or (char_code >= 0x2B820 and char_code <= 0x2CEAF)  # CJK Unified Ideographs Extension E
+        or (char_code >= 0xF900 and char_code <= 0xFAFF)  # CJK Compatibility Ideographs
+        or (char_code >= 0x2F800 and char_code <= 0x2FA1F)  # CJK Compatibility Ideographs Supplement
+    ):
         return True
 
     return False
