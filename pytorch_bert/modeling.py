@@ -8,17 +8,17 @@ from torch.nn import functional as F
 class BertConfig:
     def __init__(
         self,
-        attention_probs_dropout_prob: float,
-        hidden_act: str,
-        hidden_dropout_prob: float,
-        hidden_size: int,
-        initializer_range: float,
-        intermediate_size: int,
-        max_position_embeddings: int,
-        num_attention_heads: int,
-        num_hidden_layers: int,
-        type_vocab_size: int,
         vocab_size: int,
+        hidden_size: int = 768,
+        num_hidden_layers: int = 12,
+        num_attention_heads: int = 12,
+        intermediate_size: int = 3072,
+        hidden_act: str = "gelu",
+        hidden_dropout_prob: float = 0.1,
+        attention_probs_dropout_prob: float = 0.1,
+        max_position_embeddings: int = 512,
+        type_vocab_size: int = 16,
+        initializer_range: float = 0.0,
     ):
         self.attention_probs_dropout_prob = attention_probs_dropout_prob
         self.hidden_act = hidden_act
