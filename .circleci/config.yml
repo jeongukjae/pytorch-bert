@@ -31,14 +31,29 @@ jobs:
     executor: pytorch-bert-executor
     steps:
       - install-requirements
+
+      - run:
+          name: install tensorflow
+          command: . env/bin/activate && pip install tensorflow
+
+      - restore_cache:
+          key: google-pretrained-weight
+
       - run:
           name: run tests
           command: . env/bin/activate && pytest
+
+      - save_cache:
+          key: google-pretrained-weight
+          paths:
+            - /tmp/bert-base
+            - /tmp/bert-large
 
   run-linter:
     executor: pytorch-bert-executor
     steps:
       - install-requirements
+
       - run:
           name: run linter
           command: |
