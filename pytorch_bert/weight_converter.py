@@ -48,9 +48,9 @@ def load_tf_weight_to_pytorch_pretraining_bert(
     _load_linear(bert.mlm.transform, tf_model_path, "cls/predictions/transform/dense", load_bias=False)
     _load_layer_norm(bert.mlm.transform_layer_norm, tf_model_path, "cls/predictions/transform/LayerNorm")
     if share_parameters:
-        bert.mlm.output_layer.weight = bert.bert.word_embeddings.weight
+        bert.mlm.output_layer.weight = bert.bert.token_embeddings.weight
     else:
-        bert.mlm.output_layer.weight = nn.Parameter(bert.bert.word_embeddings.weight.clone())
+        bert.mlm.output_layer.weight = nn.Parameter(bert.bert.token_embeddings.weight.clone())
     _load_raw(bert.mlm.output_bias, tf_model_path, "cls/predictions/output_bias")
 
     # load nsp

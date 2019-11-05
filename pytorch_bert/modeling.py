@@ -19,6 +19,7 @@ class BertConfig:
         max_position_embeddings: int = 512,
         type_vocab_size: int = 16,
         initializer_range: float = 0.0,
+        **kwargs,  # unused
     ):
         self.attention_probs_dropout_prob = attention_probs_dropout_prob
         self.hidden_act = hidden_act
