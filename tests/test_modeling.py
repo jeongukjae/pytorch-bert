@@ -1,5 +1,5 @@
-import torch
 import pytest
+import torch
 
 import pytorch_bert.modeling as M
 

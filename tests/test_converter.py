@@ -4,9 +4,8 @@ import zipfile
 
 import pytest
 
-from pytorch_bert.modeling import BertConfig, Bert, PretrainingBert
+from pytorch_bert.modeling import Bert, BertConfig, PretrainingBert
 from pytorch_bert.weight_converter import load_tf_weight_to_pytorch_bert, load_tf_weight_to_pytorch_pretraining_bert
-
 
 google_bert_model_parameters = pytest.mark.parametrize(
     "url,directory,unzipped_path",
