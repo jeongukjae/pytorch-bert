@@ -50,7 +50,9 @@ def convert_sequences_to_feature(
 
 
 def create_input_mask(input_mask: List[List[int]], max_sequence_length: int):
-    return torch.ones((len(input_mask), max_sequence_length), dtype=torch.bool) ^ torch.tensor(input_mask, dtype=torch.bool)
+    return torch.ones((len(input_mask), max_sequence_length), dtype=torch.bool) ^ torch.tensor(
+        input_mask, dtype=torch.bool
+    )
 
 
 def mask(feature: Feature, mask_token_id: int):

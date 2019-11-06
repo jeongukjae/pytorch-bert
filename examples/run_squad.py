@@ -1,9 +1,8 @@
 import torch
 from torch import nn
 
-from pytorch_bert import convert_sequences_to_feature, BertConfig, Bert, Vocab, SubWordTokenizer
+from pytorch_bert import Bert, BertConfig, SubWordTokenizer
 from pytorch_bert.weight_converter import load_tf_weight_to_pytorch_bert
-
 from util_for_squad import download_model_file, prepare_dataset, read_squad_example
 
 
@@ -36,14 +35,14 @@ if __name__ == "__main__":
         force_download=False,
     )
 
-    print('build BERT model')
+    print("build BERT model")
     config = BertConfig.from_json("/tmp/bert-base/multi_cased_L-12_H-768_A-12/bert_config.json")
     model = BertForSquad(config)
 
-    print('load BERT weight')
+    print("load BERT weight")
     load_tf_weight_to_pytorch_bert(model.bert, config, "/tmp/bert-base/multi_cased_L-12_H-768_A-12/bert_model.ckpt")
 
-    print('prepare dataset')
+    print("prepare dataset")
     tokenizer = SubWordTokenizer("/tmp/bert-base/multi_cased_L-12_H-768_A-12/vocab.txt")
     examples = read_squad_example("./train-v1.1.json")
     dataset = prepare_dataset(examples, tokenizer, config.max_position_embeddings)

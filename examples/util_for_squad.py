@@ -1,16 +1,16 @@
 import json
 import os
-from pytorch_bert.feature import create_input_mask
 import urllib.request
 import zipfile
-from typing import List
 from collections import namedtuple
+from typing import List
 
 import torch
-from torch.utils.data import RandomSampler, TensorDataset
+from torch.utils.data import TensorDataset
 
+from pytorch_bert import SubWordTokenizer, convert_sequences_to_feature
+from pytorch_bert.feature import create_input_mask
 from pytorch_bert.tokenizer import clean_text
-from pytorch_bert import convert_sequences_to_feature, BertConfig, Bert, Vocab, SubWordTokenizer
 
 SquadExample = namedtuple(
     "SquadExample", ("context_text", "question_text", "answer_text", "start_position", "end_position")
