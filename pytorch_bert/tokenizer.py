@@ -15,7 +15,10 @@ class SpecialToken:
 
 
 class SubWordTokenizer:
-    def __init__(self, vocab: "Vocab", do_lower_case: bool = True):
+    def __init__(self, vocab: Union["Vocab", str], do_lower_case: bool = True):
+        if isinstance(vocab, str):
+            vocab = Vocab(vocab)
+
         self.vocab = vocab
 
         self.basic_tokenizer = BasicTokenizer(do_lower_case=do_lower_case)
