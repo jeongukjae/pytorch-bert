@@ -44,5 +44,7 @@ if __name__ == "__main__":
 
     print("prepare dataset")
     tokenizer = SubWordTokenizer("/tmp/bert-base/multi_cased_L-12_H-768_A-12/vocab.txt")
+    print("read squad file")
     examples = read_squad_example("./train-v1.1.json")
+    print("convert squad example to dataset")
     dataset = prepare_dataset(examples, tokenizer, config.max_position_embeddings)
