@@ -59,7 +59,7 @@ def test_wordpiece_tokenizer(tmpdir):
 
 
 def test_clean_text():
-    assert T._clean_text("\tHello\n안녕안녕   mm") == " Hello 안녕안녕   mm"
+    assert T.clean_text("\tHello\n안녕안녕   mm") == " Hello 안녕안녕   mm"
 
 
 def test_is_whitespace():

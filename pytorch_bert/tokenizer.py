@@ -84,7 +84,7 @@ class BasicTokenizer:
 
     def tokenize(self, text: str) -> List[str]:
         """Tokenizes a piece of text."""
-        text = _clean_text(text)
+        text = clean_text(text)
 
         # This was added on November 1st, 2018 for the multilingual and Chinese
         # models. This is also applied to the English models now, but it doesn't
@@ -94,7 +94,7 @@ class BasicTokenizer:
         # words in the English Wikipedia.).
         text = _tokenize_chinese_chars(text)
 
-        original_tokens = _tokenize_whitespace(text)
+        original_tokens = tokenize_whitespace(text)
         splitted_tokens = []
         for token in original_tokens:
             if self.do_lower_case:
@@ -102,7 +102,7 @@ class BasicTokenizer:
                 token = self._strip_accents(token)
             splitted_tokens.extend(self._split_on_punc(token))
 
-        output_tokens = _tokenize_whitespace(" ".join(splitted_tokens))
+        output_tokens = tokenize_whitespace(" ".join(splitted_tokens))
         return output_tokens
 
     @staticmethod
@@ -155,7 +155,7 @@ class WordpieceTokenizer:
         Returns:
             A list of wordpiece tokens.
         """
-        return [subword for token in _tokenize_whitespace(text) for subword in self._split_to_subwords(token)]
+        return [subword for token in tokenize_whitespace(text) for subword in self._split_to_subwords(token)]
 
     def _split_to_subwords(self, token: str) -> List[str]:
         if len(token) > self.max_length_of_word:
@@ -188,6 +188,17 @@ class WordpieceTokenizer:
         return None, end_position
 
 
+def clean_text(text: str) -> str:
+    """Performs invalid character removal and whitespace cleanup on text."""
+    output = [" " if _is_whitespace(char) else char for char in text if not _is_invalid_char(char)]
+    return "".join(output)
+
+
+def tokenize_whitespace(text: str) -> List[str]:
+    """Runs basic whitespace cleaning and splitting on a piece of text."""
+    return text.strip().split()
+
+
 def _convert_to_str(text: Union[str, bytes]) -> str:
     if isinstance(text, str):
         return text
@@ -195,11 +206,6 @@ def _convert_to_str(text: Union[str, bytes]) -> str:
         return text.decode("utf-8", "ignore")
     else:
         raise ValueError("Unsupported string type: %s" % (type(text)))
-
-
-def _tokenize_whitespace(text: str) -> List[str]:
-    """Runs basic whitespace cleaning and splitting on a piece of text."""
-    return text.strip().split()
 
 
 def _is_punctuation(char: str) -> bool:
@@ -215,12 +221,6 @@ def _is_punctuation(char: str) -> bool:
     if cat.startswith("P"):
         return True
     return False
-
-
-def _clean_text(text: str) -> str:
-    """Performs invalid character removal and whitespace cleanup on text."""
-    output = [" " if _is_whitespace(char) else char for char in text if not _is_invalid_char(char)]
-    return "".join(output)
 
 
 def _is_whitespace(char: str) -> bool:
