@@ -1,3 +1,6 @@
+import os
+from multiprocessing import Pool
+
 import torch
 from torch import nn
 
@@ -28,6 +31,9 @@ def get_index(logit: torch.Tensor):
 
 
 if __name__ == "__main__":
+    num_processes = int(os.getenv("PYTORCH_BERT_NUM_PROCESSES", 8))
+    pool = Pool(num_processes)
+
     print("start to download model file")
     download_model_file(
         "https://storage.googleapis.com/bert_models/2018_11_23/multi_cased_L-12_H-768_A-12.zip",
@@ -46,7 +52,7 @@ if __name__ == "__main__":
     tokenizer = SubWordTokenizer("/tmp/bert-base/multi_cased_L-12_H-768_A-12/vocab.txt")
 
     print("read squad file")
-    examples = read_squad_example("./data/train-v1.1.json")
+    examples = read_squad_example("./data/train-v1.1.json", pool)
 
     print("convert squad example to dataset")
-    dataset = prepare_dataset(examples, tokenizer, config.max_position_embeddings)
+    dataset = prepare_dataset(examples, tokenizer, config.max_position_embeddings, pool)

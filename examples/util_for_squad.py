@@ -3,13 +3,15 @@ import os
 import urllib.request
 import zipfile
 from collections import namedtuple
-from typing import List
+from functools import partial
+from multiprocessing import Pool
+from typing import Any, Dict, List
 
 import torch
 from torch.utils.data import TensorDataset
 
 from pytorch_bert import SubWordTokenizer, convert_sequences_to_feature
-from pytorch_bert.feature import create_input_mask
+from pytorch_bert.feature import Feature, create_input_mask
 from pytorch_bert.tokenizer import clean_text
 
 SquadExample = namedtuple(
@@ -34,34 +36,34 @@ def download_model_file(url: str, cache_directory: str = "/tmp", force_download:
     model_zip.close()
 
 
-def read_squad_example(json_path: str) -> List[SquadExample]:
+def read_squad_example(json_path: str, pool: Pool) -> List[SquadExample]:
     with open(json_path, "r") as f:
         paragraphs = [paragraph for data in json.load(f)["data"] for paragraph in data["paragraphs"]]
 
-    examples = []
-
-    for paragraph in paragraphs:
-        original_context_text = paragraph["context"]
-        context_text = clean_text(original_context_text)
-
-        for qa in paragraph["qas"]:
-            question_text = clean_text(qa["question"])
-            answer = qa["answers"][0]
-            answer_text = clean_text(answer["text"])
-
-            start_position = context_text[: context_text.index(answer_text)].count(" ")
-            end_position = start_position + answer_text.count(" ")
-
-            examples.append(SquadExample(context_text, question_text, answer_text, start_position, end_position))
-
-    return examples
+    squad_examples = pool.map(_convert_paragraph_to_example, paragraphs, 50)
+    return [example for list_of_example in squad_examples for example in list_of_example]
 
 
-def prepare_dataset(examples: List[SquadExample], tokenizer: SubWordTokenizer, max_sequence_length: int):
-    features = [
-        convert_sequences_to_feature(tokenizer, (example.context_text, example.question_text), max_sequence_length)
-        for example in examples
-    ]
+def _convert_paragraph_to_example(paragraph: Dict[str, Any]) -> List[SquadExample]:
+    original_context_text = paragraph["context"]
+    context_text = clean_text(original_context_text)
+
+    return [_convert_p_qa_to_example(context_text, qa) for qa in paragraph["qas"]]
+
+
+def _convert_p_qa_to_example(context_text: str, qa: Dict[str, Any]) -> SquadExample:
+    question_text = clean_text(qa["question"])
+    answer = qa["answers"][0]
+    answer_text = clean_text(answer["text"])
+
+    start_position = context_text[: context_text.index(answer_text)].count(" ")
+    end_position = start_position + answer_text.count(" ")
+
+    return SquadExample(context_text, question_text, answer_text, start_position, end_position)
+
+
+def prepare_dataset(examples: List[SquadExample], tokenizer: SubWordTokenizer, max_sequence_length: int, pool: Pool):
+    features = pool.map(partial(_example_to_feature, tokenizer, max_sequence_length), examples)
 
     input_type_ids_of_features = torch.tensor([feature.input_type_ids for feature in features])
     input_ids_of_features = torch.tensor([feature.input_ids for feature in features])
@@ -77,3 +79,7 @@ def prepare_dataset(examples: List[SquadExample], tokenizer: SubWordTokenizer, m
         start_position_of_features,
         end_position_of_features,
     )
+
+
+def _example_to_feature(tokenizer: SubWordTokenizer, max_sequence_length: int, example: SquadExample) -> Feature:
+    return convert_sequences_to_feature(tokenizer, (example.context_text, example.question_text), max_sequence_length)
