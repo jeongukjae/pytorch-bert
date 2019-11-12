@@ -1,4 +1,4 @@
-__version__ = "0.0.1"
+__version__ = "1.0.0a0"
 
 __all__ = ["convert_sequences_to_feature", "Bert", "BertConfig", "PretrainingBert", "SubWordTokenizer", "Vocab"]
 
