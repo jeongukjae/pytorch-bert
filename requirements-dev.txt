@@ -6,3 +6,6 @@ black
 # testing
 pytest
 pytest-cov
+
+# optional
+tensorflow

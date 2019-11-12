@@ -32,10 +32,6 @@ jobs:
     steps:
       - install-requirements
 
-      - run:
-          name: install tensorflow
-          command: . env/bin/activate && pip install tensorflow
-
       - restore_cache:
           key: google-pretrained-weight
 
