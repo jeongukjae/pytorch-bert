@@ -7,7 +7,8 @@ A implementation of BERT using PyTorch `TransformerEncoder` and pre-trained mode
 
 ## Usage
 
-[**How can I use this codes?**](https://github.com/jeongukjae/pytorch-bert/blob/8c276c222e721bc725049599f6b46dfedbc63340/tests/test_converter.py#L32)
+* [**Usage**](https://github.com/jeongukjae/pytorch-bert/blob/8c276c222e721bc725049599f6b46dfedbc63340/tests/test_converter.py#L32)
+* [**Input, Ouptut Shape**](https://github.com/jeongukjae/pytorch-bert/blob/master/tests/test_modeling.py)
 
 ```python
 config = BertConfig.from_json("path-to-pretarined-weights/bert_config.json")
