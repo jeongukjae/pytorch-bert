@@ -41,7 +41,7 @@ jobs:
 
       - run:
           name: run tests
-          command: . env/bin/activate && pytest
+          command: . env/bin/activate && pytest --cov pytorch_bert
 
       - save_cache:
           key: google-pretrained-weight
@@ -50,7 +50,7 @@ jobs:
             - /tmp/bert-large
 
       - run:
-          name: run tests
+          name: send reports to codecov
           command: . env/bin/activate && codecov
 
   run-linter:
