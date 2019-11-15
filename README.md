@@ -9,7 +9,7 @@ A implementation of BERT using PyTorch `TransformerEncoder` and pre-trained mode
 ## Installation
 
 ```sh
-pip install pytorch-bert 1.0.0a1
+pip install pytorch-bert
 ```
 
 ## Usage
