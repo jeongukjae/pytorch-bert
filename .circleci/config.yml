@@ -23,6 +23,9 @@ commands:
       - restore_cache:
           key: deps-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}-{{ checksum "tox.ini" }}
 
+      - restore_cache:
+          key: google-pretrained-weight
+
       - run:
           name: test tox
           command: ~/.local/bin/tox
@@ -31,6 +34,12 @@ commands:
           key: deps-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
           paths:
             - .tox
+
+      - save_cache:
+          key: google-pretrained-weight
+          paths:
+            - /tmp/bert-base
+            - /tmp/bert-large
 
       - run:
           name: upload report to codecov
