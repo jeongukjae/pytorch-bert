@@ -1,70 +1,59 @@
 version: 2.1
 
 executors:
-  pytorch-bert-executor:
+  pytorch-bert-executor-36:
+    working_directory: ~/pytorch-bert
+    docker:
+      - image: circleci/python:3.6
+
+  pytorch-bert-executor-37:
     working_directory: ~/pytorch-bert
     docker:
       - image: circleci/python:3.7
 
 commands:
-  install-requirements:
+  test-with-tox:
     steps:
       - checkout
 
+      - run:
+          name: install tox and codecov
+          command: pip install --user tox codecov
+
       - restore_cache:
-          key: deps-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
+          key: deps-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}-{{ checksum "tox.ini" }}
 
       - run:
-          name: create virtualenv and install requirements
-          command: |
-            virtualenv env
-            . env/bin/activate
-            pip install -r requirements.txt -r requirements-dev.txt codecov
+          name: test tox
+          command: ~/.local/bin/tox
 
       - save_cache:
           key: deps-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
           paths:
-            - "env"
+            - .tox
+
+      - run:
+          name: upload report to codecov
+          command: ~/.local/bin/codecov
 
 jobs:
-  run-test:
-    executor: pytorch-bert-executor
+  run-test-36:
+    executor: pytorch-bert-executor-36
+    environment:
+      TOXENV: py36
     steps:
-      - install-requirements
+      - test-with-tox
 
-      - restore_cache:
-          key: google-pretrained-weight
-
-      - run:
-          name: run tests
-          command: . env/bin/activate && pytest --cov pytorch_bert
-
-      - save_cache:
-          key: google-pretrained-weight
-          paths:
-            - /tmp/bert-base
-            - /tmp/bert-large
-
-      - run:
-          name: send reports to codecov
-          command: . env/bin/activate && codecov
-
-  run-linter:
-    executor: pytorch-bert-executor
+  run-test-37:
+    executor: pytorch-bert-executor-37
+    environment:
+      TOXENV: py37
     steps:
-      - install-requirements
-
-      - run:
-          name: run linter
-          command: |
-            . env/bin/activate
-            flake8 pytorch_bert tests
-            isort -rc pytorch_bert tests
-            black pytorch_bert tests
+      - test-with-tox
 
 workflows:
   version: 2
   pytorch-bert-workflow:
     jobs:
-      - run-test
-      - run-linter
+      - run-test-36
+      - run-test-37
