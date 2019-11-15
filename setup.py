@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="pytorch-bert",
-    version="1.0.0a1",
+    version="1.0.0a2",
     install_requires=["torch>=1.3.0"],
     extras_require={"with-tf": ["tensorflow>=2.0.0", "numpy"]},
     packages=find_packages(exclude=["tests"]),
