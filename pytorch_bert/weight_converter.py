@@ -18,7 +18,7 @@ def load_tf_weight_to_pytorch_bert(bert: Bert, config: BertConfig, tf_model_path
 
     # load embedding layer
     _load_embedding(bert.token_embeddings, tf_model_path, "bert/embeddings/word_embeddings")
-    _load_embedding(bert.segment_embeddings, tf_model_path, "bert/embeddings/token_type_embeddings")
+    _load_embedding(bert.token_type_embeddings, tf_model_path, "bert/embeddings/token_type_embeddings")
     _load_embedding(bert.position_embeddings, tf_model_path, "bert/embeddings/position_embeddings")
     _load_layer_norm(bert.embedding_layer_norm, tf_model_path, "bert/embeddings/LayerNorm")
 
@@ -54,8 +54,8 @@ def load_tf_weight_to_pytorch_pretraining_bert(
     _load_raw(bert.mlm.output_bias, tf_model_path, "cls/predictions/output_bias")
 
     # load nsp
-    _load_raw(bert.nsp.nsp_layer.weight, tf_model_path, f"cls/seq_relationship/output_weights")
-    _load_raw(bert.nsp.nsp_layer.bias, tf_model_path, f"cls/seq_relationship/output_bias")
+    _load_raw(bert.nsp.output_layer.weight, tf_model_path, f"cls/seq_relationship/output_weights")
+    _load_raw(bert.nsp.output_layer.bias, tf_model_path, f"cls/seq_relationship/output_bias")
 
 
 def _load_embedding(embedding: nn.Embedding, tf_model_path: str, embedding_path: str):

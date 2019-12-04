@@ -59,7 +59,7 @@ class Bert(nn.Module):
     def __init__(self, config: BertConfig):
         super(Bert, self).__init__()
         self.token_embeddings = nn.Embedding(config.vocab_size, config.hidden_size)
-        self.segment_embeddings = nn.Embedding(config.type_vocab_size, config.hidden_size)
+        self.token_type_embeddings = nn.Embedding(config.type_vocab_size, config.hidden_size)
         self.position_embeddings = nn.Embedding(config.max_position_embeddings, config.hidden_size)
         self.embedding_layer_norm = nn.LayerNorm(config.hidden_size)
         self.embedding_dropout = nn.Dropout(p=config.hidden_dropout_prob)
@@ -83,7 +83,7 @@ class Bert(nn.Module):
         position_ids = torch.arange(seq_length, dtype=torch.long, device=input_ids.device)
 
         words_embeddings = self.token_embeddings(input_ids)
-        token_type_embeddings = self.segment_embeddings(token_type_ids)
+        token_type_embeddings = self.token_type_embeddings(token_type_ids)
         position_embeddings = self.position_embeddings(position_ids)
 
         embeddings = words_embeddings + position_embeddings + token_type_embeddings
