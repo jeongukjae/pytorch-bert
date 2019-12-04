@@ -1,3 +1,5 @@
+import math
+
 import pytest
 
 import pytorch_bert.feature as F
@@ -68,7 +70,7 @@ def test_truncate_sequence_pair(tokenized_sequences, max_length, expected_output
                 ["[CLS]", "the", "dog", "is", "hairy", ",", "is", "this", "jack", "##son", "##ville", "?", "[SEP]", "no", "it", "is", "not", "[SEP]"],
                 [3,       5,     6,     7,    8,       9,   7,    10,     11,     12,      13,        14,  2,       15,   16,   7,    17,    2,      0,  0],
                 [0,       0,     0,     0,    0,       0,   0,     0,      0,      0,       0,         0,  0,       1,    1,    1,    1,     1,      0,  0],
-                [0,       0,     0,     0,    0,       0,   0,     0,      0,      0,       0,         0,  0,       0,    0,    0,    0,     0,      -1, -1]
+                [0,       0,     0,     0,    0,       0,   0,     0,      0,      0,       0,         0,  0,       0,    0,    0,    0,     0,      -math.inf, -math.inf]
             ),
         ),
         pytest.param(
@@ -78,7 +80,7 @@ def test_truncate_sequence_pair(tokenized_sequences, max_length, expected_output
                 ["[CLS]", "the", "dog", "is", "hairy", ",", "is", "this", "jack", "##son", "##ville", "?", "[SEP]"],
                 [3,       5,     6,     7,    8,       9,   7,    10,     11,     12,      13,        14,  2,        0,  0,  0,  0,  0,  0,  0],
                 [0,       0,     0,     0,    0,       0,   0,     0,      0,      0,       0,         0,  0,        0,  0,  0,  0,  0,  0,  0],
-                [0,       0,     0,     0,    0,       0,   0,     0,      0,      0,       0,         0,  0,       -1, -1, -1, -1, -1, -1, -1]
+                [0,       0,     0,     0,    0,       0,   0,     0,      0,      0,       0,         0,  0,       -math.inf, -math.inf, -math.inf, -math.inf, -math.inf, -math.inf, -math.inf]
             )
         )
         # fmt: on

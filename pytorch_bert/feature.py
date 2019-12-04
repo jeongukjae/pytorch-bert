@@ -10,7 +10,7 @@ class Feature(NamedTuple):
     tokens: List[str]
     input_ids: List[int]
     input_type_ids: List[int]
-    input_mask: List[int]
+    input_mask: List[float]
 
 
 def convert_sequences_to_feature(
@@ -38,11 +38,11 @@ def convert_sequences_to_feature(
         input_type_ids.extend([1] * (len(tokenized_sequences[1]) + 1))
 
     input_ids = tokenizer.convert_tokens_to_ids(tokens)
-    input_mask = [0] * len(input_ids)
+    input_mask = [0.0] * len(input_ids)
 
     if len(input_ids) < max_sequence_length:
         padding_list = [0] * (max_sequence_length - len(input_ids))
-        padding_list_for_mask = [-1] * len(padding_list)
+        padding_list_for_mask = [float("-inf")] * len(padding_list)
 
         input_type_ids.extend(padding_list)
         input_ids.extend(padding_list)
