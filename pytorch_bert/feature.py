@@ -1,7 +1,5 @@
 from typing import List, NamedTuple, Tuple, Union, cast
 
-import torch
-
 from .tokenizer import SpecialToken, SubWordTokenizer
 
 SequencePair = Tuple[str, str]
@@ -10,8 +8,8 @@ Sequences = Union[Tuple[str], SequencePair]
 
 class Feature(NamedTuple):
     tokens: List[str]
-    input_type_ids: List[int]
     input_ids: List[int]
+    input_type_ids: List[int]
     input_mask: List[int]
 
 
@@ -40,22 +38,17 @@ def convert_sequences_to_feature(
         input_type_ids.extend([1] * (len(tokenized_sequences[1]) + 1))
 
     input_ids = tokenizer.convert_tokens_to_ids(tokens)
-    input_mask = [1] * len(input_ids)
+    input_mask = [0] * len(input_ids)
 
     if len(input_ids) < max_sequence_length:
-        list_for_padding = [0] * (max_sequence_length - len(input_ids))
+        padding_list = [0] * (max_sequence_length - len(input_ids))
+        padding_list_for_mask = [-1] * len(padding_list)
 
-        input_type_ids.extend(list_for_padding)
-        input_ids.extend(list_for_padding)
-        input_mask.extend(list_for_padding)
+        input_type_ids.extend(padding_list)
+        input_ids.extend(padding_list)
+        input_mask.extend(padding_list_for_mask)
 
-    return Feature(tokens, input_type_ids, input_ids, input_mask)
-
-
-def create_input_mask(input_mask: List[List[int]], max_sequence_length: int):
-    return torch.ones((len(input_mask), max_sequence_length), dtype=torch.bool) ^ torch.tensor(
-        input_mask, dtype=torch.bool
-    )
+    return Feature(tokens, input_ids, input_type_ids, input_mask)
 
 
 def _is_sequence_pair(sequences: Tuple) -> bool:
