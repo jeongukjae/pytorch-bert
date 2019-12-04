@@ -1,6 +1,4 @@
-import random
-from collections import namedtuple
-from typing import List, Tuple, Union, cast
+from typing import List, NamedTuple, Tuple, Union, cast
 
 import torch
 
@@ -8,8 +6,13 @@ from .tokenizer import SpecialToken, SubWordTokenizer
 
 SequencePair = Tuple[str, str]
 Sequences = Union[Tuple[str], SequencePair]
-Feature = namedtuple("Feature", ("tokens", "input_type_ids", "input_ids", "input_mask"))
-Masked = namedtuple("Masked", ("positions", "answers"))
+
+
+class Feature(NamedTuple):
+    tokens: List[str]
+    input_type_ids: List[int]
+    input_ids: List[int]
+    input_mask: List[int]
 
 
 def convert_sequences_to_feature(
