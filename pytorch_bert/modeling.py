@@ -64,7 +64,7 @@ class Bert(nn.Module):
         self.embedding_layer_norm = nn.LayerNorm(config.hidden_size)
         self.embedding_dropout = nn.Dropout(p=config.hidden_dropout_prob)
 
-        self.bert_encoder = nn.TransformerEncoder(
+        self.encoders = nn.TransformerEncoder(
             encoder_layer=nn.TransformerEncoderLayer(
                 d_model=config.hidden_size,
                 nhead=config.num_attention_heads,
@@ -76,7 +76,7 @@ class Bert(nn.Module):
         )
 
         self.pooler_layer = nn.Linear(config.hidden_size, config.hidden_size)
-        self.activation = nn.Tanh()
+        self.pooled_output_activate = nn.Tanh()
 
     def forward(self, input_ids: torch.Tensor, token_type_ids: torch.Tensor, attention_mask: torch.Tensor):
         seq_length = input_ids.size(1)
@@ -90,9 +90,8 @@ class Bert(nn.Module):
         embeddings = self.embedding_layer_norm(embeddings)
         embeddings = self.embedding_dropout(embeddings)
 
-        encoder_outputs = self.bert_encoder(embeddings.permute(1, 0, 2), src_key_padding_mask=attention_mask)
-
-        pooled_output = self.activation(self.pooler_layer(encoder_outputs[0, :, :]))
+        encoder_outputs = self.encoders(embeddings.permute(1, 0, 2), src_key_padding_mask=attention_mask)
+        pooled_output = self.pooled_output_activate(self.pooler_layer(encoder_outputs[0, :, :]))
 
         return encoder_outputs, pooled_output
 
@@ -136,8 +135,8 @@ class BertNSP(nn.Module):
     def __init__(self, config: BertConfig):
         super(BertNSP, self).__init__()
 
-        self.nsp_layer = nn.Linear(config.hidden_size, 2)
-        self.nsp_softmax = nn.Softmax(dim=-1)
+        self.output_layer = nn.Linear(config.hidden_size, 2)
+        self.output_softmax = nn.Softmax(dim=-1)
 
     def forward(self, pooled_output: torch.Tensor) -> torch.Tensor:
-        return self.nsp_softmax(self.nsp_layer(pooled_output))
+        return self.output_softmax(self.output_layer(pooled_output))

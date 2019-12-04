@@ -24,7 +24,7 @@ def load_tf_weight_to_pytorch_bert(bert: Bert, config: BertConfig, tf_model_path
 
     # load transformer encoders
     for layer_num in range(config.num_hidden_layers):
-        encoder = bert.bert_encoder.layers[layer_num]
+        encoder = bert.encoders.layers[layer_num]
         encoder_path = f"bert/encoder/layer_{layer_num}"
 
         _load_self_attention(encoder.self_attn, tf_model_path, f"{encoder_path}/attention")
