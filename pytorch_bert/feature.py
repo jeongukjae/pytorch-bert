@@ -55,25 +55,6 @@ def create_input_mask(input_mask: List[List[int]], max_sequence_length: int):
     )
 
 
-def mask(feature: Feature, mask_token_id: int):
-    tokens, input_type_ids, input_ids, input_mask = feature
-    masked_positions = []
-    answers = []
-
-    for index, token in enumerate(tokens):
-        if token == SpecialToken.cls_ or token == SpecialToken.sep:
-            continue
-
-        if random.random() < 0.15:
-            masked_positions.append(index)
-            answers.append(input_ids[index])
-
-            tokens[index] = SpecialToken.mask
-            input_ids[index] = mask_token_id
-
-    return Feature(tokens, input_type_ids, input_ids, input_mask), Masked(masked_positions, answers)
-
-
 def _is_sequence_pair(sequences: Tuple) -> bool:
     return len(sequences) == 2
 
