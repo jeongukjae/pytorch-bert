@@ -91,7 +91,7 @@ class Bert(nn.Module):
         embeddings = self.embedding_dropout(embeddings)
 
         encoder_outputs = self.encoders(embeddings.permute(1, 0, 2), src_key_padding_mask=attention_mask)
-        pooled_output = self.pooled_output_activate(self.pooler_layer(encoder_outputs[0, :, :]))
+        pooled_output = self.pooled_output_activate(self.pooler_layer(encoder_outputs[0]))
 
         return encoder_outputs, pooled_output
 
