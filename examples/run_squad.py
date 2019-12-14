@@ -6,7 +6,7 @@ import sys
 from typing import NamedTuple, List
 
 import torch
-from torch import nn
+from torch import nn, optim
 from torch.utils.data import TensorDataset, RandomSampler, DataLoader
 
 from pytorch_bert import Bert, BertConfig, SubWordTokenizer
@@ -19,7 +19,11 @@ parser.add_argument("--model-path", required=True)
 parser.add_argument("--config-path", required=True)
 parser.add_argument("--vocab-path", required=True)
 parser.add_argument("--squad-train-path", required=True)
+parser.add_argument("--epoch", default=3, type=int)
 parser.add_argument("--batch-size", default=32, type=int)
+parser.add_argument("--learing-rate", default=2e-5, type=float)
+parser.add_argument("--logging-step", default=200, type=int)
+parser.add_argument("--eval-step", default=500, type=int)
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -88,7 +92,7 @@ def main():
         for example in examples
     ]
 
-    logger.info(f"create dataloader from squad features")
+    logger.info("create dataloader from squad features")
     input_ids = torch.tensor([feature.input_ids for feature in features])
     input_type_ids = torch.tensor([feature.input_type_ids for feature in features])
     input_mask = torch.tensor([feature.input_mask for feature in features])
@@ -98,6 +102,29 @@ def main():
     dataset = TensorDataset(input_type_ids, input_ids, input_mask, start_positions, end_positions)
     sampler = RandomSampler(dataset)
     train_loader = DataLoader(dataset, sampler=sampler, batch_size=args.batch_size)
+
+    optimizer = optim.AdamW(model.parameters(), lr=args.learning_rate)
+    criterion = nn.CrossEntropyLoss()
+
+    logger.info("start training")
+    logger.info(f"epoch: {args.epoch}")
+    logger.info(f"batch size: {args.batch_size}")
+    logger.info(f"length of dataset: {len(sampler)}")
+    logger.info(f"length of steps per epoch: {len(train_loader)}")
+    logger.info(f"learningrate: {args.learning_rate}")
+    logger.info(f"logging steps: {args.logging_step}")
+    logger.info(f"eval steps: {args.eval_step}")
+
+    for epoch_index in range(args.epoch):
+        model.train()
+        running_loss = 0.0
+        for batch_index, batch in enumerate(train_loader):
+            optimizer.zero_grad()
+
+            output = model(batch[0], batch[1], batch[2])
+
+            loss = criterion(output, batch)
+            running_loss += loss.item()
 
 
 if __name__ == "__main__":
