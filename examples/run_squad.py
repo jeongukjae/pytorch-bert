@@ -41,6 +41,7 @@ class BertForSquad(nn.Module):
 
     def forward(self, input_ids: torch.Tensor, token_type_ids: torch.Tensor, attention_mask: torch.Tensor):
         encoder_outputs, _ = self.bert(input_ids, token_type_ids, attention_mask)
+        encoder_outputs = encoder_outputs.permute(1, 0, 2)
         logits = self.squad_layer(encoder_outputs)
         return logits
 
@@ -96,10 +97,9 @@ def main():
     input_ids = torch.tensor([feature.input_ids for feature in features])
     input_type_ids = torch.tensor([feature.input_type_ids for feature in features])
     input_mask = torch.tensor([feature.input_mask for feature in features])
-    start_positions = torch.tensor([example.start_position for example in examples])
-    end_positions = torch.tensor([example.end_position for example in examples])
+    label = torch.tensor([[example.start_position, example.end_position] for example in examples])
 
-    dataset = TensorDataset(input_type_ids, input_ids, input_mask, start_positions, end_positions)
+    dataset = TensorDataset(input_ids, input_type_ids, input_mask, label)
     sampler = RandomSampler(dataset)
     train_loader = DataLoader(dataset, sampler=sampler, batch_size=args.batch_size)
 
@@ -119,11 +119,16 @@ def main():
         model.train()
         running_loss = 0.0
         for batch_index, batch in enumerate(train_loader):
+            # batch
+            # 0: input ids
+            # 1: input type ids
+            # 2: input mask
+            # 3: label
             optimizer.zero_grad()
 
             output = model(batch[0], batch[1], batch[2])
 
-            loss = criterion(output, batch)
+            loss = criterion(output, label)
             running_loss += loss.item()
 
 
