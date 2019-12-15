@@ -131,6 +131,8 @@ def main():
             loss = criterion(output, label)
             running_loss += loss.item()
 
+            if batch_index % args.logging_step == args.logging_step - 1:
+                logger.info(f"Step {batch_index + 1}] loss: {running_loss}")
 
 if __name__ == "__main__":
     main()
